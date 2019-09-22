@@ -1,6 +1,7 @@
 *.doc
 *.docx
 *.spec
+/images
 /.idea
 /__pycache__
 /build

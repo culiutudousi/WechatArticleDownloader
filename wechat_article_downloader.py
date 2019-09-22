@@ -27,6 +27,7 @@ class Settings(Singleton):
     FONT = u'微软雅黑'
     FONT_SIZE = 10.5
     FIRST_LINE_INDENT = 0.25
+    MAX_IMAGE_WIDTH = 6
 
 
 class ParagraphType(Enum):
@@ -37,10 +38,11 @@ class ParagraphType(Enum):
 
 class TextFormat:
 
-    def __init__(self, bold=0, alignment_center=0, alignment_right=0):
+    def __init__(self, bold=0, alignment_center=0, alignment_right=0, image_width=0):
         self.bold = bold
         self.alignment_center = alignment_center
         self.alignment_right = alignment_right
+        self.image_width = image_width
 
 
 class ArticleParagraph:
@@ -76,11 +78,17 @@ def parse_content(content, parent_text_format=TextFormat(bold=0,
         elif 'text-align: right' in str(style):
             text_format.alignment_right = 1
     if content.name == 'img':
-        img_file = download_img(content['data-src'])
-        if img_file:
-            return [ArticleParagraph(ParagraphType.IMAGE, img_file, text_format)]
-        else:
-            return [ArticleParagraph(ParagraphType.TEXT,
+        if 'data-src' in getattr(content, 'attrs', {}):
+            img_file = download_img(content['data-src'])
+            if img_file:
+                if 'style' in getattr(content, 'attrs', {}):
+                    width = findall('width: (\d+?)px', content['style'])
+                    if width and width[0]:
+                        width_inch = float(width[0]) / 72
+                        if width_inch < Settings().MAX_IMAGE_WIDTH:
+                            text_format.image_width = width_inch
+                return [ArticleParagraph(ParagraphType.IMAGE, img_file, text_format)]
+        return [ArticleParagraph(ParagraphType.TEXT,
                                      "Can not download image from url: {}".format(
                                          content['data-src']))]
     parsed_content = []
@@ -202,7 +210,10 @@ def write_article_to_docx(article):
                 current_paragraph.paragraph_format.first_line_indent = Inches(settings.FIRST_LINE_INDENT)
         elif paragraph.type == ParagraphType.IMAGE:
             img_width = Image.open(paragraph.content).width
-            show_width = get_image_show_width(img_width)
+            if paragraph.text_format.image_width:
+                show_width = paragraph.text_format.image_width
+            else:
+                show_width = get_image_show_width(img_width)
             document.add_picture(paragraph.content, width=Inches(show_width))
             if paragraph.text_format.alignment_center:
                 last_paragraph = document.paragraphs[-1]
@@ -214,12 +225,17 @@ def write_article_to_docx(article):
 
 if __name__ == '__main__':
 
-    url = input(u'请粘贴微信文章链接：\n')
+    url = input('===============================================\n' +
+                'Please PASTE the link (url) of a wechat article:\n')
     try:
+        print('===============================================')
+        print('Please wait ...')
         article = download_wechat_article_from(url)
         write_article_to_docx(article)
-        print(u'完成！')
+        print('===============================================')
+        print('Success! Press ENTER to close')
     except:
-        print(u'失败，请重试')
+        print('===================================================')
+        print('Failed! Please press ENTER to close and TRY AGAIN.')
     finally:
         input()
