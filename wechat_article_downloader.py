@@ -1,7 +1,7 @@
 import datetime
 import os
 from enum import Enum
-from re import findall
+from re import findall, sub
 from urllib.request import urlopen
 
 from PIL import Image
@@ -109,13 +109,15 @@ def get_img_format_from(url):
     for img_format in img_formats:
         if lower_url.endswith(img_format):
             return img_format
-    separator_index = max(url.find(separator, -5) for separator in '.=')
-    if separator_index:
+    if lower_url.endswith('other'):
+        return 'jpg'
+    separator_index = max(url.find(separator, -6) for separator in '.=')
+    if separator_index > 0:
         img_format = url[separator_index + 1:]
         print("Get new image format from image url: {}".format(img_format))
         return img_format
-    print("Can not get image format from url: \n{}".format(url))
-    return ''
+    print("Can not get image format from url: \n{}, try to use jpg".format(url))
+    return 'jpg'
 
 
 def download_img(url):
@@ -126,7 +128,12 @@ def download_img(url):
         with urlopen(url) as url_cache:
             with open(file_path, 'wb') as img_file:
                 img_file.write(url_cache.read())
+        reread_img = Image.open(file_path)
+        if reread_img.mode != "RGB":
+            reread_img = reread_img.convert('RGB')
+        reread_img.save(file_path)
         return file_path
+    print("Download image failed from url: \n{}".format(url))
     return None
 
 
@@ -136,6 +143,12 @@ def get_image_show_width(pix_width):
     if pix_width > max_pix_width:
         return max_show_width
     return pix_width * max_show_width / max_pix_width
+
+
+def validate_title(title):
+    rstr = r"[\/\\\:\*\?\"\<\>\|]"  # '/ \ : * ? " < > |'
+    new_title = sub(rstr, "_", title)
+    return new_title
 
 
 def download_wechat_article_from(url):
@@ -156,7 +169,7 @@ def download_wechat_article_from(url):
         article_date = date_html[0]
 
     img_path_base = 'images'
-    img_path_article = os.path.join(img_path_base, ('wx ' + title))
+    img_path_article = os.path.join(img_path_base, ('wx ' + validate_title(title)))
     if not os.path.exists(img_path_base):
         os.makedirs(img_path_base)
     if not os.path.exists(img_path_article):
@@ -214,19 +227,22 @@ def write_article_to_docx(article):
                 show_width = paragraph.text_format.image_width
             else:
                 show_width = get_image_show_width(img_width)
+            print('Adding img: ' + paragraph.content)
             document.add_picture(paragraph.content, width=Inches(show_width))
             if paragraph.text_format.alignment_center:
                 last_paragraph = document.paragraphs[-1]
                 last_paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
         elif paragraph.type == ParagraphType.SEPARATOR:
             current_paragraph = document.add_paragraph()
-    document.save('wx ' + article['title'] + '.docx')
+    document.save('wx ' + validate_title(article['title']) + '.docx')
 
 
 if __name__ == '__main__':
 
     url = input('===============================================\n' +
                 'Please PASTE the link (url) of a wechat article:\n')
+    # article = download_wechat_article_from(url)
+    # write_article_to_docx(article)
     try:
         print('===============================================')
         print('Please wait ...')
