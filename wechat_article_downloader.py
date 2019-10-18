@@ -9,8 +9,9 @@ from bs4 import BeautifulSoup, NavigableString
 from docx import Document
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.oxml.ns import qn
+from docx.oxml.shared import OxmlElement
 from docx.shared import Inches
-from docx.shared import Pt
+from docx.shared import Pt, Cm
 
 
 class Singleton(object):
@@ -146,7 +147,7 @@ def get_image_show_width(pix_width):
 
 
 def validate_title(title):
-    rstr = r"[\/\\\:\*\?\"\<\>\|]"  # '/ \ : * ? " < > |'
+    rstr = r"[\/\\\:\*\?\"\<\>\|\.]"  # '/ \ : * ? " < > | .'
     new_title = sub(rstr, "_", title)
     return new_title
 
@@ -186,10 +187,20 @@ def download_wechat_article_from(url):
             'content': article_content}
 
 
-def write_article_to_docx(article):
+def write_article_to_docx(article, url):
     settings = Settings()
 
-    document = Document()
+    model_name = 'model.docx'
+    if os.path.exists(model_name):
+        document = Document(model_name)
+    else:
+        document = Document()
+        sections = document.sections
+        for section in sections:
+            section.top_margin = Cm(2.54)
+            section.bottom_margin = Cm(2.54)
+            section.left_margin = Cm(1.91)
+            section.right_margin = Cm(1.91)
     document.styles['Normal'].font.name = settings.FONT
     document.styles['Normal']._element.rPr.rFonts.set(qn('w:eastAsia'), settings.FONT)
     style = document.styles['Normal']
@@ -200,14 +211,10 @@ def write_article_to_docx(article):
     paragraph_format = current_paragraph.paragraph_format
     paragraph_format.alignment = WD_ALIGN_PARAGRAPH.CENTER
 
-    document.add_paragraph()
-
     current_paragraph = document.add_paragraph()
     current_paragraph.add_run(article['title']).bold = True
     current_paragraph_format = current_paragraph.paragraph_format
     current_paragraph_format.alignment = WD_ALIGN_PARAGRAPH.CENTER
-
-    document.add_paragraph()
 
     current_paragraph = document.add_paragraph()
     for paragraph in article['content']:
@@ -227,31 +234,41 @@ def write_article_to_docx(article):
                 show_width = paragraph.text_format.image_width
             else:
                 show_width = get_image_show_width(img_width)
-            print('Adding img: ' + paragraph.content)
+            # print('Adding img: ' + paragraph.content)
             document.add_picture(paragraph.content, width=Inches(show_width))
             if paragraph.text_format.alignment_center:
                 last_paragraph = document.paragraphs[-1]
                 last_paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
         elif paragraph.type == ParagraphType.SEPARATOR:
             current_paragraph = document.add_paragraph()
-    document.save('wx ' + validate_title(article['title']) + '.docx')
+    
+    file_name = 'wx ' + validate_title(article['title']) + '.docx'
+    document.save(file_name)
+    return file_name
 
 
 if __name__ == '__main__':
 
-    url = input('===============================================\n' +
-                'Please PASTE the link (url) of a wechat article:\n')
-    # article = download_wechat_article_from(url)
-    # write_article_to_docx(article)
-    try:
+    debuging = False
+    if debuging:
         print('===============================================')
-        print('Please wait ...')
-        article = download_wechat_article_from(url)
-        write_article_to_docx(article)
-        print('===============================================')
-        print('Success! Press ENTER to close')
-    except:
-        print('===================================================')
-        print('Failed! Please press ENTER to close and TRY AGAIN.')
-    finally:
-        input()
+        content = input('Please PASTE the link (url) of a wechat article, or Q to quit.\n')
+        article = download_wechat_article_from(content)
+        write_article_to_docx(article, url=content)
+    else:
+        while 1:
+            print('===============================================\n')
+            content = input('Please PASTE the link (url) of a wechat article, or Enter to quit.\n\n')
+            if len(content) == 0:
+                break
+            try:
+                print('===============================================\n')
+                print('Please wait ...')
+                article = download_wechat_article_from(url=content)
+                file_name = write_article_to_docx(article, url=content)
+                print('===============================================\n')
+                print('Success! Saved as {}\n'.format(file_name))
+            except:
+                print('===================================================\n')
+                print('Failed! Please press ENTER to TRY AGAIN.\n')
+                input()
