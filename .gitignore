@@ -1,5 +1,5 @@
 *.doc
-wx*.docx
+*.docx
 *.spec
 *.txt
 /images
