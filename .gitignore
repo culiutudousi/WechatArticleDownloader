@@ -1,8 +1,10 @@
 *.doc
-*.docx
+wx*.docx
 *.spec
+*.txt
 /images
 /.idea
 /__pycache__
 /build
 /dist
+/release
