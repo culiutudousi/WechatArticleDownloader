@@ -106,6 +106,9 @@ def parse_content(content, parent_text_format=TextFormat(bold=0,
 
 def get_img_format_from(url):
     lower_url = str(url).lower()
+    # Sometimes the last character of url is "?".
+    if not lower_url[-1].isalpha():
+        lower_url = lower_url[0: -1]
     img_formats = ['png', 'jpg', 'jpeg', 'gif', 'bmp']
     for img_format in img_formats:
         if lower_url.endswith(img_format):

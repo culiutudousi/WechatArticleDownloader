@@ -124,12 +124,13 @@ def get_article_links_from_wechat_history_list_window_ui(file_name, append_or_ov
 
 if __name__ == '__main__':
 
-    debuging = False
-    if debuging:
+    debug = True
+    if debug:
         print('===============================================')
         content = input('Please PASTE the link (url) of a wechat article, or Q to quit.\n')
         article = download_wechat_article_from(content)
-        write_article_to_docx(article, url=content)
+        file_name = write_article_to_docx(article, url=content)
+        print('Success! Saved as {}!'.format(file_name))
     else:
         while 1:
             print('===============================================\n')
