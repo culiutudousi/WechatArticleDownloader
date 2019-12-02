@@ -124,7 +124,7 @@ def get_article_links_from_wechat_history_list_window_ui(file_name, append_or_ov
 
 if __name__ == '__main__':
 
-    debug = True
+    debug = False
     if debug:
         print('===============================================')
         content = input('Please PASTE the link (url) of a wechat article, or Q to quit.\n')
