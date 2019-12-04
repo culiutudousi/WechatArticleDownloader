@@ -219,15 +219,16 @@ def download_wechat_article_from(url):
 
     return {'title': title,
             'date': article_date,
-            'content': article_content}
+            'content': article_content,
+            'url': url}
 
 
 def delete_seperator_after_text_before_image(article_content):
     # The article is parsed by html logic that a separator (section / p) is needed after text and before image,
-    # such as: [text, separator, text, separator, image, separator, text]
+    #     such as: [text, separator, text, separator, image, separator, text]
     # While in python-docx, a new paragraph (separator) is automatically added before a image,
-    # so the separator after text and before image should be deleted,
-    # such as: [text, separator, text, image, separator, text]
+    #     so the separator after text and before image should be deleted,
+    #     such as: [text, separator, text, image, separator, text]
     deleted_article_content = []
     for paragraph in article_content:
         if len(deleted_article_content) >= 2 and paragraph.type == ParagraphType.IMAGE \
@@ -238,12 +239,52 @@ def delete_seperator_after_text_before_image(article_content):
     return deleted_article_content
 
 
-def write_article_to_docx(article, url):
-    settings = Settings()
+def write_article(article, document, settings, start_from_last_paragraph=False):
+    if start_from_last_paragraph and document.paragraphs:
+        current_paragraph = document.paragraphs[-1]
+    else:
+        current_paragraph = document.add_paragraph()
+    add_hyperlink(current_paragraph, article['url'], article['url'])
+    current_paragraph.add_run(' (' + article['date'] + ')')
+    paragraph_format = current_paragraph.paragraph_format
+    paragraph_format.alignment = WD_ALIGN_PARAGRAPH.CENTER
 
+    current_paragraph = document.add_paragraph()
+    current_paragraph.add_run(article['title']).bold = True
+    current_paragraph_format = current_paragraph.paragraph_format
+    current_paragraph_format.alignment = WD_ALIGN_PARAGRAPH.CENTER
+
+    current_paragraph = document.add_paragraph()
+    for paragraph in delete_seperator_after_text_before_image(article['content']):
+        if paragraph.type == ParagraphType.TEXT:
+            words = current_paragraph.add_run(paragraph.content)
+            if paragraph.text_format.bold:
+                words.bold = True
+            if paragraph.text_format.alignment_center:
+                current_paragraph.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            elif paragraph.text_format.alignment_right:
+                current_paragraph.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.RIGHT
+            else:
+                current_paragraph.paragraph_format.first_line_indent = Inches(settings.FIRST_LINE_INDENT)
+        elif paragraph.type == ParagraphType.IMAGE:
+            img_width = Image.open(paragraph.content).width
+            if paragraph.text_format.image_width:
+                show_width = paragraph.text_format.image_width
+            else:
+                show_width = get_image_show_width(img_width)
+            # print('Adding img: ' + paragraph.content)
+            document.add_picture(paragraph.content, width=Inches(show_width))
+            if paragraph.text_format.alignment_center:
+                last_paragraph = document.paragraphs[-1]
+                last_paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        elif paragraph.type == ParagraphType.SEPARATOR:
+            current_paragraph = document.add_paragraph()
+
+
+def get_document_with_style():
+    settings = Settings()
     model_name = './res/model.docx'
-    model_exist = os.path.exists(model_name)
-    if model_exist:
+    if os.path.exists(model_name):
         document = Document(model_name)
     else:
         document = Document()
@@ -257,50 +298,22 @@ def write_article_to_docx(article, url):
     document.styles['Normal']._element.rPr.rFonts.set(qn('w:eastAsia'), settings.FONT)
     style = document.styles['Normal']
     style.font.size = Pt(settings.FONT_SIZE)
+    return document, settings
 
-    if model_exist:
-        current_paragraph = document.paragraphs[-1]
-    else:
-        current_paragraph = document.add_paragraph()
-    add_hyperlink(current_paragraph, url, url)
-    current_paragraph.add_run(' (' + article['date'] + ')')
-    paragraph_format = current_paragraph.paragraph_format
-    paragraph_format.alignment = WD_ALIGN_PARAGRAPH.CENTER
 
-    current_paragraph = document.add_paragraph()
-    current_paragraph.add_run(article['title']).bold = True
-    current_paragraph_format = current_paragraph.paragraph_format
-    current_paragraph_format.alignment = WD_ALIGN_PARAGRAPH.CENTER
-
-    current_paragraph = document.add_paragraph()
-    for paragraph in delete_seperator_after_text_before_image(article['content']):
-        if paragraph.type == ParagraphType.TEXT:
-            print('text')
-            words = current_paragraph.add_run(paragraph.content)
-            if paragraph.text_format.bold:
-                words.bold = True
-            if paragraph.text_format.alignment_center:
-                current_paragraph.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.CENTER
-            elif paragraph.text_format.alignment_right:
-                current_paragraph.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.RIGHT
-            else:
-                current_paragraph.paragraph_format.first_line_indent = Inches(settings.FIRST_LINE_INDENT)
-        elif paragraph.type == ParagraphType.IMAGE:
-            print('image')
-            img_width = Image.open(paragraph.content).width
-            if paragraph.text_format.image_width:
-                show_width = paragraph.text_format.image_width
-            else:
-                show_width = get_image_show_width(img_width)
-            # print('Adding img: ' + paragraph.content)
-            document.add_picture(paragraph.content, width=Inches(show_width))
-            if paragraph.text_format.alignment_center:
-                last_paragraph = document.paragraphs[-1]
-                last_paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
-        elif paragraph.type == ParagraphType.SEPARATOR:
-            print('separator')
-            current_paragraph = document.add_paragraph()
-    
+def write_article_to_docx(article):
+    document, settings = get_document_with_style()
+    write_article(article, document, settings, start_from_last_paragraph=True)
     file_name = 'wx ' + validate_title(article['title']) + '.docx'
+    document.save(file_name)
+    return file_name
+
+
+def write_articles_to_one_docx(articles):
+    document, settings = get_document_with_style()
+    for article in articles:
+        write_article(article, document, settings, start_from_last_paragraph=False)
+    file_name = 'wx ' + '{}_links_'.format(len(articles)) \
+                + datetime.datetime.now().strftime("%Y%m%d_%H%M%S") + '.docx'
     document.save(file_name)
     return file_name
