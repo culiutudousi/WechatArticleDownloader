@@ -55,8 +55,8 @@ class MainWindow(QWidget):
         self.run_widget.go_button.setMinimumWidth(360)
         self.run_widget.go_button.clicked.connect(self.download)
         self.run_widget.finish_signal.connect(lambda b=True: self.read_mode_widget.setLinkInputLineEnabled(b))
-        self.run_widget.control_mouse_and_keyboard_start_signal.connect(lambda b=False: self.setVisible(b))
-        self.run_widget.control_mouse_and_keyboard_end_signal.connect(lambda b=True: self.setVisible(b))
+        # self.run_widget.control_mouse_and_keyboard_start_signal.connect(lambda b=False: self.setVisible(b))
+        # self.run_widget.control_mouse_and_keyboard_end_signal.connect(lambda b=True: self.setVisible(b))
 
         self.read_mode_frame.setMinimumHeight(145)
         self.run_frame.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)

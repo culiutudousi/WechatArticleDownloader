@@ -16,10 +16,13 @@ pyautogui.FAILSAFE = True
 pyautogui.PAUSE = 0.5
 
 
-def get_list_window():
+def get_list_window(click=True):
     screen_img = pyautogui.screenshot()
     top_right_w, top_right_h = get_top_right_corner(screen_img,
                                                     Image.open(TOP_RIGHT_CORNER_OF_ARTICLE_LIST_IMG).convert("RGB"))
+    # Click the top of the wechat article history window to rise it up to the top level
+    if click:
+        pyautogui.leftClick(x=top_right_w - 90, y=top_right_h + 30, duration=0.5, tween=pyautogui.linear)
     # print('Top right corner: ', top_right_w, top_right_h)
     top_left_w, top_left_h = get_not_white(screen_img, top_right_w, top_right_h, -1, 0)
     # print('Top left corner: ', top_left_w, top_left_h)
@@ -159,16 +162,16 @@ def open_article_and_copy_link(left, right, middle, bottom, items, action_histor
 
 def get_article_links_from_wechat_history_list_window():
     left, right, top, middle, bottom = get_list_window()
-    mouse_w_in_list_window = (left + right) / 2
-    mouse_h_in_list_window = middle + 50
-    pyautogui.moveTo(x=mouse_w_in_list_window, y=mouse_h_in_list_window, duration=0.5, tween=pyautogui.linear)
+    mouse_w_in_scroll_area = (left + right) // 2
+    mouse_h_in_scroll_area = middle + 50
+    pyautogui.moveTo(x=mouse_w_in_scroll_area, y=mouse_h_in_scroll_area, duration=0.5, tween=pyautogui.linear)
     scroll_to_top_of_list_window(left, right, middle, bottom)
 
     scroll_times = (bottom - middle) // SCROLL_HEIGHT - 2
     items, action_history = get_items_from_list_window(left, right, middle, bottom, scroll_times)
 
     article_links = open_article_and_copy_link(left, right, middle, bottom, items, action_history,
-                                               mouse_w_in_list_window, mouse_h_in_list_window)
+                                               mouse_w_in_scroll_area, mouse_h_in_scroll_area)
     return article_links
 
 
