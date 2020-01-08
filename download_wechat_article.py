@@ -27,7 +27,8 @@ class Singleton(object):
 
 class Settings(Singleton):
     IMAGE_PATH = ''
-    FONT = u'微软雅黑'
+    ENGLISSH_FONT = 'Bahnschrift'
+    CHINESE_FONT = u'微软雅黑'
     FONT_SIZE = 10.5
     FIRST_LINE_INDENT = 0.25
     MAX_IMAGE_WIDTH = 6
@@ -294,8 +295,9 @@ def get_document_with_style():
             section.bottom_margin = Cm(2.54)
             section.left_margin = Cm(1.91)
             section.right_margin = Cm(1.91)
-    document.styles['Normal'].font.name = settings.FONT
-    document.styles['Normal']._element.rPr.rFonts.set(qn('w:eastAsia'), settings.FONT)
+    document.styles['Normal'].font.name = settings.CHINESE_FONT
+    document.styles['Normal']._element.rPr.rFonts.set(qn('w:ascii'), settings.ENGLISSH_FONT)
+    document.styles['Normal']._element.rPr.rFonts.set(qn('w:eastAsia'), settings.CHINESE_FONT)
     style = document.styles['Normal']
     style.font.size = Pt(settings.FONT_SIZE)
     return document, settings

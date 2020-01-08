@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import sys
+from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import Qt, QThread, pyqtSignal
 from PyQt5.QtWidgets import (QWidget, QLabel, QLineEdit, QApplication, QRadioButton, QPushButton, QMessageBox,
                              QButtonGroup, QHBoxLayout, QVBoxLayout, QCheckBox, QSplitter, QFrame, QStyleFactory,
@@ -36,6 +37,7 @@ class MainWindow(QWidget):
 
         self.setGeometry(800, 100, 400, 425)
         self.setWindowTitle('微信文章下载器')
+        self.setWindowIcon(QIcon('./res/download_icon.png'))
         self.setFixedSize(self.width(), self.height())
         self.show()
 
@@ -55,6 +57,7 @@ class MainWindow(QWidget):
         self.run_widget.go_button.setMinimumWidth(360)
         self.run_widget.go_button.clicked.connect(self.download)
         self.run_widget.finish_signal.connect(lambda b=True: self.read_mode_widget.setLinkInputLineEnabled(b))
+        self.run_widget.finish_signal.connect(self.read_mode_widget.clearLink)
         # self.run_widget.control_mouse_and_keyboard_start_signal.connect(lambda b=False: self.setVisible(b))
         # self.run_widget.control_mouse_and_keyboard_end_signal.connect(lambda b=True: self.setVisible(b))
 
