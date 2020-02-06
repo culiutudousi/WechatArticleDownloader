@@ -3,14 +3,12 @@ import pyautogui
 import pyperclip
 from PIL import Image
 
-
 ITEM_HEIGHT = 115
 SCROLL_NUM = -260
 SCROLL_HEIGHT = 120
 SEPARATOR_LINE_COLOR = [(237, 237, 237), (242, 242, 242)]
 TOP_RIGHT_CORNER_OF_ARTICLE_LIST_IMG = './res/top_right_corner_of_article_list.png'
 LINK_COPY_BUTTON_IMG = './res/link_copy_button.png'
-
 
 pyautogui.FAILSAFE = True
 pyautogui.PAUSE = 0.5
@@ -20,18 +18,17 @@ def get_list_window(click=True):
     screen_img = pyautogui.screenshot()
     top_right_w, top_right_h = get_top_right_corner(screen_img,
                                                     Image.open(TOP_RIGHT_CORNER_OF_ARTICLE_LIST_IMG).convert("RGB"))
+    print('Top right corner: {}, {}'.format(top_right_w, top_right_h))
     # Click the top of the wechat article history window to rise it up to the top level
     if click:
         pyautogui.leftClick(x=top_right_w - 90, y=top_right_h + 30, duration=0.5, tween=pyautogui.linear)
-    # print('Top right corner: ', top_right_w, top_right_h)
     top_left_w, top_left_h = get_not_white(screen_img, top_right_w, top_right_h, -1, 0)
-    # print('Top left corner: ', top_left_w, top_left_h)
+    print('Top left corner: {}, {}'.format(top_left_w, top_left_h))
     middle_right_w, middle_right_h = get_not_white(screen_img, top_right_w, top_right_h, 0, 1)
     middle_right_h += 1
-    # print('Middle right point: ', middle_right_w, middle_right_h)
+    print('Middle right point: {}, {}'.format(middle_right_w, middle_right_h))
     bottom_right_w, bottom_right_h = get_not_white(screen_img, middle_right_w, middle_right_h, 0, 1)
-    # print('Bottom right corner: ', bottom_right_w, bottom_right_h)
-    # return: left, right, top, middle, bottom
+    print('Bottom right corner: {}, {}'.format(bottom_right_w, bottom_right_h))
     return top_left_w, top_right_w, top_right_h, middle_right_h, bottom_right_h
 
 
@@ -127,13 +124,17 @@ def get_items_from_list_window(left, right, middle, bottom, scroll_times):
         action_history += ['item'] * len(new_items)
         last_item_top = new_last_item_top
 
+        print("actual_scroll_distance: {}, expected_scroll_distance: {}".format(actual_scroll_distance,
+                                                                                expected_scroll_distance))
+
     for i in range(actual_scroll_times):
         pyautogui.scroll(-SCROLL_NUM, pause=0.3)
 
     return items, action_history
 
 
-def open_article_and_copy_link(left, right, middle, bottom, items, action_history, mouse_w_in_list_window, mouse_h_in_list_window):
+def open_article_and_copy_link(left, right, middle, bottom, items, action_history, mouse_w_in_list_window,
+                               mouse_h_in_list_window):
     article_links = []
     have_scrolled = True
     list_window = None
@@ -162,6 +163,7 @@ def open_article_and_copy_link(left, right, middle, bottom, items, action_histor
 
 def get_article_links_from_wechat_history_list_window():
     left, right, top, middle, bottom = get_list_window()
+    time.sleep(1)
     mouse_w_in_scroll_area = (left + right) // 2
     mouse_h_in_scroll_area = middle + 50
     pyautogui.moveTo(x=mouse_w_in_scroll_area, y=mouse_h_in_scroll_area, duration=0.5, tween=pyautogui.linear)
@@ -169,6 +171,7 @@ def get_article_links_from_wechat_history_list_window():
 
     scroll_times = (bottom - middle) // SCROLL_HEIGHT - 2
     items, action_history = get_items_from_list_window(left, right, middle, bottom, scroll_times)
+    time.sleep(1)
 
     article_links = open_article_and_copy_link(left, right, middle, bottom, items, action_history,
                                                mouse_w_in_scroll_area, mouse_h_in_scroll_area)
