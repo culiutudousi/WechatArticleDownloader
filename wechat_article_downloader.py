@@ -16,7 +16,11 @@ def download_one_link(url, save_as_docx=True):
                 return True, file_name
             else:
                 return True, article
-        except:
+        except Exception as e:
+            print("########## Exception Message ##########")
+            print(type(e))
+            print(e)
+            print("#######################################")
             return False, 'failed'
     else:
         return False, 'not_wechat'
