@@ -53,13 +53,13 @@ def scroll_to_top_of_list_window(left, right, middle, bottom):
     samples = []
     list_window = pyautogui.screenshot(region=(left, middle, right - left, bottom - middle))
     px = list_window.load()
-    new_samples = [px[int((left + right) / 2), h] for h in range(bottom - middle)]
+    new_samples = [px[int((right - left) / 2), h] for h in range(bottom - middle)]
     while new_samples != samples:
         samples = new_samples
         pyautogui.scroll(-SCROLL_NUM)
         list_window = pyautogui.screenshot(region=(left, middle, right - left, bottom - middle))
         px = list_window.load()
-        new_samples = [px[int((left + right) / 2), h] for h in range(bottom - middle)]
+        new_samples = [px[int((right - left) / 2), h] for h in range(bottom - middle)]
 
 
 def get_separator_lines(img):
