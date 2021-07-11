@@ -241,9 +241,10 @@ def delete_seperator_after_text_before_image(article_content):
 
 
 def remove_empty_lines(document):
-    for paragraph in document.paragraphs:
-        if len(paragraph.text) == 0:
-            delete_paragraph(paragraph)
+    pass
+    # for paragraph in document.paragraphs:
+    #     if len(paragraph.text) == 0:
+    #         delete_paragraph(paragraph)
 
 
 def delete_paragraph(paragraph):
