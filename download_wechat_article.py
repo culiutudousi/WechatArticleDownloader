@@ -30,7 +30,7 @@ class Settings(Singleton):
     ENGLISSH_FONT = 'Bahnschrift'
     CHINESE_FONT = u'微软雅黑'
     FONT_SIZE = 12
-    FIRST_LINE_INDENT = 0.25
+    FIRST_LINE_INDENT = 0
     MAX_IMAGE_WIDTH = 6
     ADD_DATE_AFTER_URL = False
 
