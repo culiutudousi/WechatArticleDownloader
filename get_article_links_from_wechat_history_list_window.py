@@ -172,11 +172,14 @@ def get_article_links_from_wechat_history_list_window():
     try:
         left, right, top, middle, bottom = get_list_window()
 
-        time.sleep(1)
+        time.sleep(2)
 
         mouse_w_in_scroll_area = (left + right) // 2
         mouse_h_in_scroll_area = middle + 50
-        pyautogui.moveTo(x=mouse_w_in_scroll_area, y=mouse_h_in_scroll_area, duration=0.5, tween=pyautogui.linear)
+        pyautogui.moveTo(x=mouse_w_in_scroll_area, y=mouse_h_in_scroll_area, duration=2, tween=pyautogui.linear)
+
+        time.sleep(1)
+
         scroll_to_top_of_list_window(left, right, middle, bottom)
 
         time.sleep(1)
