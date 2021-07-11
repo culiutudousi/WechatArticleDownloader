@@ -266,16 +266,19 @@ def write_article(article, document, settings, start_from_last_paragraph=False):
             else:
                 current_paragraph.paragraph_format.first_line_indent = Inches(settings.FIRST_LINE_INDENT)
         elif paragraph.type == ParagraphType.IMAGE:
-            img_width = Image.open(paragraph.content).width
-            if paragraph.text_format.image_width:
-                show_width = paragraph.text_format.image_width
-            else:
-                show_width = get_image_show_width(img_width)
-            # print('Adding img: ' + paragraph.content)
-            document.add_picture(paragraph.content, width=Inches(show_width))
-            if paragraph.text_format.alignment_center:
-                last_paragraph = document.paragraphs[-1]
-                last_paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            try:
+                img_width = Image.open(paragraph.content).width
+                if paragraph.text_format.image_width:
+                    show_width = paragraph.text_format.image_width
+                else:
+                    show_width = get_image_show_width(img_width)
+                print('Adding img: ' + paragraph.content)
+                document.add_picture(paragraph.content, width=Inches(show_width))
+                if paragraph.text_format.alignment_center:
+                    last_paragraph = document.paragraphs[-1]
+                    last_paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            except Exception as e:
+                print("Write image failed: ", e, "\n\twith ", paragraph.content)
         elif paragraph.type == ParagraphType.SEPARATOR:
             current_paragraph = document.add_paragraph()
 
