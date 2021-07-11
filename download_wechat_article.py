@@ -32,6 +32,7 @@ class Settings(Singleton):
     FONT_SIZE = 12
     FIRST_LINE_INDENT = 0.25
     MAX_IMAGE_WIDTH = 6
+    ADD_DATE_AFTER_URL = False
 
 
 class ParagraphType(Enum):
@@ -244,7 +245,8 @@ def write_article(article, document, settings, start_from_last_paragraph=False):
     else:
         current_paragraph = document.add_paragraph()
     add_hyperlink(current_paragraph, article['url'], article['url'])
-    current_paragraph.add_run(' (' + article['date'] + ')')
+    if settings.ADD_DATE_AFTER_URL:
+        current_paragraph.add_run(' (' + article['date'] + ')')
     paragraph_format = current_paragraph.paragraph_format
     paragraph_format.alignment = WD_ALIGN_PARAGRAPH.CENTER
 
