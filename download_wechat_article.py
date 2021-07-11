@@ -29,7 +29,7 @@ class Settings(Singleton):
     IMAGE_PATH = ''
     ENGLISSH_FONT = 'Bahnschrift'
     CHINESE_FONT = u'微软雅黑'
-    FONT_SIZE = 10.5
+    FONT_SIZE = 12
     FIRST_LINE_INDENT = 0.25
     MAX_IMAGE_WIDTH = 6
 
