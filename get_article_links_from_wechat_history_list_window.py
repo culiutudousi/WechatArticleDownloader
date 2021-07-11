@@ -9,6 +9,7 @@ SCROLL_HEIGHT = 120
 SEPARATOR_LINE_COLOR = [(237, 237, 237), (242, 242, 242)]
 TOP_RIGHT_CORNER_OF_ARTICLE_LIST_IMG = './res/top_right_corner_of_article_list.png'
 LINK_COPY_BUTTON_IMG = './res/link_copy_button.png'
+MINI_PROGRAM_TAG_IMAGE = './res/mini_program_tag.png'
 
 pyautogui.FAILSAFE = True
 pyautogui.PAUSE = 0.5
@@ -148,6 +149,10 @@ def open_article_and_copy_link(left, right, middle, bottom, items, action_histor
             have_scrolled = True
         elif action == 'item':
             item = items.pop(0)
+            if is_mini_program(item):
+                print(f'Get mini program, skip it ...')
+                article_links.append('mini program')
+                continue
             if have_scrolled:
                 list_window = pyautogui.screenshot(region=(left, middle, right - left, bottom - middle))
                 have_scrolled = False
@@ -166,6 +171,17 @@ def open_article_and_copy_link(left, right, middle, bottom, items, action_histor
             pyautogui.keyUp('altleft')
         time.sleep(0.2)
     return article_links
+
+
+def is_mini_program(item):
+    try:
+        time.sleep(0.2)
+        location = pyautogui.locate(needleImage=MINI_PROGRAM_TAG_IMAGE, haystackImage=item)
+        time.sleep(0.2)
+        return location is not None
+    except Exception as e:
+        pass
+    return False
 
 
 def get_article_links_from_wechat_history_list_window():
