@@ -16,6 +16,9 @@ from docx.shared import Pt, Cm
 from docx.enum.dml import MSO_THEME_COLOR_INDEX
 
 
+SUPPORTED_IMAGE_FORMATS = ['png', 'jpg', 'jpeg', 'gif', 'bmp']
+
+
 class Singleton(object):
     _instance = None
 
@@ -144,19 +147,24 @@ def get_img_format_from(url):
     # Sometimes the last character of url is "?".
     if not lower_url[-1].isalpha():
         lower_url = lower_url[0: -1]
-    img_formats = ['png', 'jpg', 'jpeg', 'gif', 'bmp']
-    for img_format in img_formats:
+    for img_format in SUPPORTED_IMAGE_FORMATS:
         if lower_url.endswith(img_format):
             return img_format
     if lower_url.endswith('other'):
         return 'jpg'
-    separator_index = max(url.find(separator, -6) for separator in '.=')
-    if separator_index > 0:
-        img_format = url[separator_index + 1:]
-        print("Get new image format from image url: {}".format(img_format))
-        return img_format
-    print("Can not get image format from url: \n{}, try to use jpg".format(url))
-    return 'jpg'
+    return None
+
+
+def get_img_format_from_filename(filename):
+    for img_format in SUPPORTED_IMAGE_FORMATS:
+        if filename.lower().endswith(img_format):
+            return img_format
+    print(f'Get not supported image, skip it: {filename}')
+    return None
+
+
+def validate_img_format(filename):
+    return get_img_format_from_filename(filename) is not None
 
 
 def download_img(url):
@@ -283,19 +291,23 @@ def write_article(article, document, settings, start_from_last_paragraph=False):
             else:
                 current_paragraph.paragraph_format.first_line_indent = Inches(settings.FIRST_LINE_INDENT)
         elif paragraph.type == ParagraphType.IMAGE:
+            img_filename = paragraph.content
             try:
-                img_width = Image.open(paragraph.content).width
+                if not validate_img_format(img_filename):
+                    print(f'Skip img: {img_filename}')
+                    continue
+                img_width = Image.open(img_filename).width
                 if paragraph.text_format.image_width:
                     show_width = paragraph.text_format.image_width
                 else:
                     show_width = get_image_show_width(img_width)
-                print('Adding img: ' + paragraph.content)
-                document.add_picture(paragraph.content, width=Inches(show_width))
+                print(f'Adding img: {img_filename}')
+                document.add_picture(img_filename, width=Inches(show_width))
                 if paragraph.text_format.alignment_center:
                     last_paragraph = document.paragraphs[-1]
                     last_paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
             except Exception as e:
-                print("Write image failed: ", e, "\n\twith ", paragraph.content)
+                print(f"Write image failed: {e} \n\twith {img_filename}")
         elif paragraph.type == ParagraphType.SEPARATOR:
             current_paragraph = document.add_paragraph()
     if settings.REMOVE_BLANK_LINES:
