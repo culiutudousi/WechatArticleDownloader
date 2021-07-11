@@ -33,6 +33,7 @@ class Settings(Singleton):
     FIRST_LINE_INDENT = 0
     MAX_IMAGE_WIDTH = 6
     ADD_DATE_AFTER_URL = False
+    REMOVE_BLANK_LINES = True
 
 
 class ParagraphType(Enum):
@@ -239,6 +240,19 @@ def delete_seperator_after_text_before_image(article_content):
     return deleted_article_content
 
 
+def remove_empty_lines(document):
+    for paragraph in document.paragraphs:
+        if len(paragraph.text) == 0:
+            delete_paragraph(paragraph)
+
+
+def delete_paragraph(paragraph):
+    # refer: https://stackoverflow.com/questions/42800051/python-3-how-to-remove-line-paragraph-breaks
+    p = paragraph._element
+    p.getparent().remove(p)
+    p._p = p._element = None
+
+
 def write_article(article, document, settings, start_from_last_paragraph=False):
     if start_from_last_paragraph and document.paragraphs:
         current_paragraph = document.paragraphs[-1]
@@ -283,6 +297,8 @@ def write_article(article, document, settings, start_from_last_paragraph=False):
                 print("Write image failed: ", e, "\n\twith ", paragraph.content)
         elif paragraph.type == ParagraphType.SEPARATOR:
             current_paragraph = document.add_paragraph()
+    if settings.REMOVE_BLANK_LINES:
+        remove_empty_lines(document)
 
 
 def get_document_with_style():
