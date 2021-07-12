@@ -127,9 +127,7 @@ def parse_content(content, parent_text_format=TextFormat(bold=0,
                         if width_inch < Settings().MAX_IMAGE_WIDTH:
                             text_format.image_width = width_inch
                 return [ArticleParagraph(ParagraphType.IMAGE, img_file, text_format)]
-        return [ArticleParagraph(ParagraphType.TEXT,
-                                     "Can not download image from url: {}".format(
-                                         content['data-src']))]
+        return []
     parsed_content = []
     if content.children:
         for child in content.children:
