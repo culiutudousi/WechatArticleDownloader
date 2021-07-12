@@ -1,0 +1,1 @@
+pyinstaller wechat_article_downloader_ui.py -F --noconsole --icon=res/download_icon.ico
