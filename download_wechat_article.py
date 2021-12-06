@@ -205,7 +205,7 @@ def download_wechat_article_from(url):
     soup = BeautifulSoup(html_content, "html5lib")
     soup.prettify()
 
-    title_html = soup.find('h2', 'rich_media_title')
+    title_html = soup.find(name='h1', class_='rich_media_title')
     title = title_html.string.strip()
 
     date_html = findall('i="(\d{4}-\d{2}-\d{2})"', str(soup))
