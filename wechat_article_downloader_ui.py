@@ -35,7 +35,7 @@ class MainWindow(QWidget):
     def initUI(self):
         self.initSettingUI()
 
-        self.setGeometry(800, 100, 400, 425)
+        self.setGeometry(800, 100, 800, 800)
         self.setWindowTitle('微信文章下载器')
         self.setWindowIcon(QIcon('./res/download_icon.png'))
         self.setFixedSize(self.width(), self.height())
@@ -61,7 +61,7 @@ class MainWindow(QWidget):
         # self.run_widget.control_mouse_and_keyboard_start_signal.connect(lambda b=False: self.setVisible(b))
         # self.run_widget.control_mouse_and_keyboard_end_signal.connect(lambda b=True: self.setVisible(b))
 
-        self.read_mode_frame.setMinimumHeight(145)
+        self.read_mode_frame.setMinimumHeight(350)
         self.run_frame.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
         self.setting_box = QHBoxLayout()
