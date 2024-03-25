@@ -13,6 +13,7 @@ from docx.oxml.ns import qn
 from docx.oxml.shared import OxmlElement
 from docx.shared import Inches
 from docx.shared import Pt, Cm
+from docx.shared import RGBColor
 from docx.enum.dml import MSO_THEME_COLOR_INDEX
 
 
@@ -271,10 +272,10 @@ def write_article(article, document, settings, start_from_last_paragraph=False):
     paragraph_format = current_paragraph.paragraph_format
     paragraph_format.alignment = WD_ALIGN_PARAGRAPH.CENTER
 
-    current_paragraph = document.add_paragraph()
-    current_paragraph.add_run(article['title']).bold = True
-    current_paragraph_format = current_paragraph.paragraph_format
-    current_paragraph_format.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    title = document.add_heading(article['title'], level=1)
+    title.bold = True
+    title.color = RGBColor(0, 0, 0)
+    title.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.CENTER
 
     current_paragraph = document.add_paragraph()
     for paragraph in delete_seperator_after_text_before_image(article['content']):
